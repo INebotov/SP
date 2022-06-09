@@ -1,0 +1,64 @@
+openapi: 3.0.1
+info:
+  title: SP API
+  description: api
+  version: 0.0.1
+servers:
+- url: http://localhost:9090
+paths:
+  /auth:
+    post:
+      summary: Get A Acess and Refesh Tocken
+      requestBody:
+        description: Standart Login-Password Authorization
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                password:
+                  type: string
+      responses:
+          '200':
+            description: OK Authorization Complete!
+            content:
+              application/json:
+                schema: 
+                  type: object
+                  properties: 
+                    ascess:
+                      type: string
+                    refresh:
+                      type: string
+          '401':
+            description: Unauthorizated!
+          '400': 
+            description: Bad Reqest!
+  /refresh:
+    post:
+      summary: Get an Acess tocken from Valid Refresh 
+      requestBody:
+        description: Refresh Tocken
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh:
+                  type: string
+      responses:
+          '200':
+            description: OK Tocken Is Valid!
+            content:
+              application/json:
+                schema: 
+                  type: object
+                  properties:
+                    ascess:
+                      type: string
+          '401':
+            description: Bad Refresh Tocken!
+          '400': 
+            description: Bad Reqest!
