@@ -100,8 +100,4 @@ func (c *Config) Configure(file string, a *ath.Auth, db *datb.DataBase, r *rout.
 
 	// Boulshirt
 
-	db.DB.Create(&dats.UserCrenditals{
-		Name: "Ivan", Login: "IIvan", Role: "Admin", Password: other.NewSHA256("ButterFly777"),
-		Email: "ivannebotov@justnets.ru",
-	})
 }
