@@ -22,6 +22,7 @@ jwt:
     - "*.justnets.ru"
     - "*.devcomun.ru"
     - "*.everynumber.ru"
+  issuer: JN Auth Service
   secret: ./secrets/jwtRS256.key
   publickey: ./secrets/jwtRS256.key.pub
 router:

@@ -1,4 +1,4 @@
-package other
+package Other
 
 import (
 	"crypto/sha256"
@@ -7,9 +7,9 @@ import (
 )
 
 // Hashing
-func NewSHA256(data string) string {
+func NewSHA256(data string) []byte {
 	hash := sha256.Sum256([]byte(data))
-	return string(hash[:])
+	return hash[:]
 }
 
 func ValidEmail(email string) bool {

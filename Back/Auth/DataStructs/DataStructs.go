@@ -1,27 +1,29 @@
-package datastructs
+package DataStructs
 
 import (
-	"crypto/rsa"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"gorm.io/gorm"
 )
 
 // Jwt
-type Auth struct {
-	AcessTTL    time.Duration
-	RefreshTTL  time.Duration
-	Secret      *rsa.PrivateKey
-	PublicKey   *rsa.PublicKey
-	SignMethod  jwt.SigningMethod
-	Audience    []string
-	ServiceName string
+
+type TockenPair struct {
+	Acess   string
+	Refresh string
 }
+
 type Claims struct {
 	Type   string `json:"type,omitempty"`
 	Role   string `json:"role,omitempty"`
 	Email  string `json:"email,omitempty"`
+	UserID uint64 `json:"userid,omitempty"`
+
+	*jwt.RegisteredClaims
+}
+
+type RefreshClaims struct {
+	Type   string `json:"type,omitempty"`
 	UserID uint64 `json:"userid,omitempty"`
 
 	*jwt.RegisteredClaims
@@ -33,11 +35,14 @@ type UserCrenditals struct {
 	Name      string
 	Login     string
 	Role      string
-	Password  string
+	Password  []byte
 	Email     string
 	CreatedAt time.Time `gorm:"autoCreateTime"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime:milli"`
 }
-type DataBase struct {
-	DB *gorm.DB
+
+// Router
+type UserArrived struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
 }
