@@ -1,0 +1,28 @@
+servicename: authorizing api
+database:
+  postgres:
+    db: crenditals
+    password: ButterFly777
+    user: ivan
+    port: 5432
+    host: localhost
+    sslmode: disable
+    timezone: Asia/Shanghai
+logs:
+  to:
+    - stdin
+    - ./logs/auth-%dd-mm-yy%.log
+  format: JSON
+  date: true
+jwt:
+  acsessttl: 30    #Minutes!
+  refreshttl: 720  #Hours!
+  signmethod: RS256
+  audience:
+    - "*.justnets.ru"
+    - "*.devcomun.ru"
+    - "*.everynumber.ru"
+  secret: ./secrets/jwtRS256.key
+  publickey: ./secrets/jwtRS256.key.pub
+router:
+  port: 3000
