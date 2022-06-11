@@ -8,10 +8,15 @@ database:
     host: localhost
     sslmode: disable
     timezone: Asia/Shanghai
+  redis:
+    db: 0
+    host: localhost
+    port: 6379
+    password: /home/ivan/Desktop/SP/secrets/.redis-password
 logs:
   to:
     - stdin
-    - ./logs/auth-%dd-mm-yy%.log
+    - ./logs/auth-%dd-mm-yy%.log # TODO: Elastic Search FileBeat Kibana Logstash
   format: JSON
   date: true
 jwt:
@@ -23,7 +28,7 @@ jwt:
     - "*.devcomun.ru"
     - "*.everynumber.ru"
   issuer: JN Auth Service
-  secret: ./secrets/jwtRS256.key
-  publickey: ./secrets/jwtRS256.key.pub
+  secret: /home/ivan/Desktop/SP/secrets/jwtRS256.key
+  publickey: /home/ivan/Desktop/SP/secrets/jwtRS256.key.pub
 router:
   port: 3000

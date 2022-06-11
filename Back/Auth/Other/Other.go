@@ -2,8 +2,7 @@ package Other
 
 import (
 	"crypto/sha256"
-	"fmt"
-	"net/mail"
+	"errors"
 )
 
 // Hashing
@@ -12,19 +11,16 @@ func NewSHA256(data string) []byte {
 	return hash[:]
 }
 
-func ValidEmail(email string) bool {
-	_, err := mail.ParseAddress(email)
-	return err == nil
-}
-
 // Error Checking
-func CheckPanic(err error) {
-	if err != nil {
-		panic(err)
+func CompareErrors(errs ...error) error {
+	str := ""
+	for _, el := range errs {
+		if el != nil {
+			str += el.Error() + "\n"
+		}
 	}
-}
-func CheckSimple(err error) {
-	if err != nil {
-		fmt.Println(err)
+	if str == "" {
+		return nil
 	}
+	return errors.New(str[:len(str)-2])
 }

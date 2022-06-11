@@ -9,6 +9,9 @@ import (
 	rout "github.com/INebotov/SP/Back/Auth/Router"
 )
 
+// TODO: Redis key-userid value tocken
+// TODO: Diagrams correct in Api
+
 func main() {
 	c := conf.Config{}
 	a := ath.Auth{}

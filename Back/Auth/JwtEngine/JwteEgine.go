@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	datb "github.com/INebotov/SP/Back/Auth/DataBase"
 	dats "github.com/INebotov/SP/Back/Auth/DataStructs"
 	other "github.com/INebotov/SP/Back/Auth/Other"
 	"github.com/golang-jwt/jwt/v4"
@@ -21,14 +22,11 @@ type Auth struct {
 	SignMethod  jwt.SigningMethod
 	Audience    []string
 	ServiceName string
+	datb.DataBase
 }
 
-func (a Auth) GenerateAcsess(user dats.UserCrenditals) string {
+func (a Auth) GenerateAcsess(user dats.UserCrenditals) (string, error) {
 	uuid, err := uuid.NewRandom()
-	other.CheckSimple(err)
-	if err != nil {
-		return ""
-	}
 	now := time.Now().UTC()
 	tk := &dats.Claims{RegisteredClaims: &jwt.RegisteredClaims{
 		Issuer: a.Issuer, Subject: user.Login,
@@ -37,39 +35,26 @@ func (a Auth) GenerateAcsess(user dats.UserCrenditals) string {
 		IssuedAt: jwt.NewNumericDate(now), ID: uuid.String()}, Role: user.Role, Type: "Acess",
 		Email: user.Email, UserID: user.ID}
 
-	token, err := jwt.NewWithClaims(jwt.SigningMethodRS256, tk).SignedString(a.Secret)
-	other.CheckSimple(err)
-	if err != nil {
-		return ""
-	}
-	return token
+	token, err2 := jwt.NewWithClaims(jwt.SigningMethodRS256, tk).SignedString(a.Secret)
+	return token, other.CompareErrors(err, err2)
 }
-
-func (a Auth) GenerateRefresh(user dats.UserCrenditals) string {
+func (a Auth) GenerateRefresh() (string, error) {
 	uuid, err := uuid.NewRandom()
-	other.CheckSimple(err)
-	if err != nil {
-		return ""
-	}
 	now := time.Now().UTC()
-	tk := &dats.RefreshClaims{RegisteredClaims: &jwt.RegisteredClaims{
-		Issuer: a.Issuer, Subject: user.Login,
-		Audience:  a.Audience,
-		ExpiresAt: jwt.NewNumericDate(now.Add(a.AcessTTL)), NotBefore: jwt.NewNumericDate(now),
-		IssuedAt: jwt.NewNumericDate(now), ID: uuid.String()}, Type: "Refresh", UserID: user.ID}
+	tocken := uuid.String()
+	exp := now.Add(a.RefreshTTL).Format("2006-01-02 15:04:05")
+	err1 := a.DataBase.Redis.Set(tocken, exp, a.RefreshTTL).Err()
 
-	token, err := jwt.NewWithClaims(jwt.SigningMethodRS256, tk).SignedString(a.Secret)
-	other.CheckSimple(err)
-	if err != nil {
-		return ""
-	}
-	return token
+	return tocken, other.CompareErrors(err, err1)
 }
-
-func (a Auth) GetKeyPair(user dats.UserCrenditals) dats.TockenPair {
-	return dats.TockenPair{Acess: a.GenerateAcsess(user), Refresh: a.GenerateRefresh(user)}
+func (a Auth) DeleteRefresh(tk string) error {
+	return a.DataBase.Redis.Del(tk).Err()
 }
-
+func (a Auth) GetKeyPair(user dats.UserCrenditals) (dats.TockenPair, error) {
+	as, err := a.GenerateAcsess(user)
+	re, err1 := a.GenerateRefresh()
+	return dats.TockenPair{Acess: as, Refresh: re}, other.CompareErrors(err, err1)
+}
 func (a Auth) CheckAndRipp(tk string) (dats.Claims, error) {
 	token, err := jwt.ParseWithClaims(tk, &dats.Claims{}, func(jwtToken *jwt.Token) (interface{}, error) {
 		if _, ok := jwtToken.Method.(*jwt.SigningMethodRSA); !ok {
@@ -78,10 +63,6 @@ func (a Auth) CheckAndRipp(tk string) (dats.Claims, error) {
 
 		return a.PublicKey, nil
 	})
-	other.CheckSimple(err)
-	if err != nil {
-		return dats.Claims{}, errors.New("non valid tocken format")
-	}
 	result, ok := token.Claims.(*dats.Claims)
 	if !ok || !token.Valid {
 		return dats.Claims{}, errors.New("non valid result")
@@ -89,29 +70,15 @@ func (a Auth) CheckAndRipp(tk string) (dats.Claims, error) {
 	if time.Now().After(result.ExpiresAt.Time) {
 		return dats.Claims{}, errors.New("expired tocken")
 	}
-	return *result, nil
+	return *result, err
 }
-
-func (a Auth) CheckAndRippRefresh(tk string) (dats.RefreshClaims, error) {
-	token, err := jwt.ParseWithClaims(tk, &dats.RefreshClaims{}, func(jwtToken *jwt.Token) (interface{}, error) {
-		if _, ok := jwtToken.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("unexpected method: %s", jwtToken.Header["alg"])
-		}
-
-		return a.PublicKey, nil
-	})
-	other.CheckSimple(err)
+func (a Auth) CheckRefresh(tk string) (bool, error) {
+	exp, err := a.DataBase.Redis.Get(tk).Result()
 	if err != nil {
-		return dats.RefreshClaims{}, errors.New("non valid tocken format")
+		return false, err
 	}
-	result, ok := token.Claims.(*dats.RefreshClaims)
-	if !ok || !token.Valid {
-		return dats.RefreshClaims{}, errors.New("non valid result")
-	}
-	if time.Now().After(result.ExpiresAt.Time) {
-		return dats.RefreshClaims{}, errors.New("expired tocken")
-	}
-	return *result, nil
+	tieme, err1 := time.Parse("2006-01-02 15:04:05", exp)
+	return time.Now().After(tieme) || err != nil, other.CompareErrors(err, err1)
 }
 
 // func (a Auth) GenFromRefesh(refresh string) (string, bool) {

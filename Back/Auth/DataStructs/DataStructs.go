@@ -22,13 +22,6 @@ type Claims struct {
 	*jwt.RegisteredClaims
 }
 
-type RefreshClaims struct {
-	Type   string `json:"type,omitempty"`
-	UserID uint64 `json:"userid,omitempty"`
-
-	*jwt.RegisteredClaims
-}
-
 // Database
 type UserCrenditals struct {
 	ID        uint64 `gorm:"primaryKey"`
@@ -44,5 +37,5 @@ type UserCrenditals struct {
 // Router
 type UserArrived struct {
 	Login    string `json:"login"`
-	Password string `json:"password"`
+	Password []byte `json:"password"`
 }
